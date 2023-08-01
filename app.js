@@ -55,11 +55,11 @@ function handleAction(answer) {
 function viewAll(tableName) {
     const query = `SELECT * FROM ${tableName}`;
     connection.query(query, (err, res) => {
-      if (err) throw err;
-      console.table(res);
-      start();
+        if (err) throw err;
+        console.table(res);
+        start();
     });
-  }
+}
 function addDepartment() {
     inquirer
         .prompt([
@@ -81,6 +81,122 @@ function addDepartment() {
                     start();
                 }
             );
+        });
+}
+function addRole() {
+    connection.query("SELECT * FROM department", function (err, departments) {
+        if (err) throw err;
+
+        inquirer
+            .prompt([
+                {
+                    name: "roleTitle",
+                    type: "input",
+                    message: "What is the title of the new role?",
+                },
+                {
+                    name: "roleSalary",
+                    type: "input",
+                    message: "What is the Salary for this role?",
+                },
+                {
+                    name: "roleDept",
+                    type: "list",
+                    message: "What department is this role in?",
+                    choices: departments.map((department) => ({
+                        name: department.department_name,
+                        value: department.id,
+                    })),
+                },
+            ])
+            .then((answer) => {
+                connection.query(
+                    "INSERT INTO role SET ?",
+                    {
+                        title: answer.roleTitle,
+                        salary: answer.roleSalary,
+                        department_id: answer.roleDept,
+                    },
+                    (err, res) => {
+                        if (err) throw err;
+                        console.log(`${answer.roleTitle} Role added successfully!`);
+                        start();
+                    }
+                );
+            });
+    });
+}
+
+function addEmployee() {
+    Promise.all([
+        new Promise((resolve, reject) => {
+            connection.query("SELECT * FROM role", function (err, roles) {
+                if (err) reject(err);
+                resolve(roles);
+            });
+        }),
+
+        new Promise((resolve, reject) => {
+            connection.query("SELECT * FROM employee", function (err, employees) {
+                if (err) reject(err);
+                resolve(employees);
+            });
+        }),
+    ])
+        .then(([roles, employees]) => {
+            inquirer
+                .prompt([
+                    {
+                        name: "firstName",
+                        type: "input",
+                        message: "What is the employee's first name?",
+                    },
+                    {
+                        name: "lastName",
+                        type: "input",
+                        message: "What is the employee's last name?",
+                    },
+                    {
+                        name: "roleId",
+                        type: "list",
+                        message: "What role does this employee have?",
+                        choices: roles.map((role) => ({
+                            name: role.title,
+                            value: role.id,
+                        })),
+                    },
+                    {
+                        name: "managerId",
+                        type: "list",
+                        message: "Who is this employee's manager?",
+                        choices: employees.map((employee) => ({
+                            name: `${employee.first_name} ${employee.last_name}`,
+                            value: employee.id,
+                        })),
+                    },
+                ])
+                .then((answer) => {
+                    connection.query(
+                        "INSERT INTO employee SET ?",
+                        {
+                            first_name: answer.firstName,
+                            last_name: answer.lastName,
+                            role_id: answer.roleId,
+                            manager_id: answer.managerId,
+                        },
+                        (err, res) => {
+                            if (err) throw err;
+                            console.log(
+                                `${answer.firstName} ${answer.lastName} Employee added successfully!`
+                            );
+                            start();
+                        }
+                    );
+                });
+        })
+        .catch((err) => {
+            console.error("Error fetching data:", err);
+            start();
         });
 }
 
