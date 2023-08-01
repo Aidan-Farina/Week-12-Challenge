@@ -60,4 +60,28 @@ function viewAll(tableName) {
       start();
     });
   }
+function addDepartment() {
+    inquirer
+        .prompt([
+            {
+                name: "departmentName",
+                type: "input",
+                message: "What is the name of the new department?",
+            },
+        ])
+        .then((answer) => {
+            connection.query(
+                "INSERT INTO department SET ?",
+                {
+                    department_name: answer.departmentName,
+                },
+                (err, res) => {
+                    if (err) throw err;
+                    console.log(`${answer.departmentName} Department added successfully!`);
+                    start();
+                }
+            );
+        });
+}
 
+start();
