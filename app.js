@@ -200,4 +200,45 @@ function addEmployee() {
         });
 }
 
+function updateRole() {
+    connection.query("SELECT * FROM employee", function (err, employees) {
+        if (err) throw err;
+        connection.query("SELECT * FROM role", function (err, roles) {
+            if (err) throw err;
+            inquirer
+                .prompt([
+                    {
+                        name: "employeeId",
+                        type: "list",
+                        message: "Which employees role do you want to update?",
+                        choices: employees.map((employee) => ({
+                            name: `${employee.first_name} ${employee.last_name}`,
+                            value: employee.id,
+                        })),
+                    },
+                    {
+                        name: "roleId",
+                        type: "list",
+                        message: "Which role do you want to assign the selected employee?",
+                        choices: roles.map((role) => ({
+                            name: role.title,
+                            value: role.id,
+                        })),
+                    },
+                ])
+                .then((answers) => {
+                    connection.query(
+                        "UPDATE employee SET role_id = ? WHERE id = ?",
+                        [answers.roleId, answers.employeeId],
+                        function (err) {
+                            if (err) throw err;
+                            console.log("Updated employees role");
+                            start();
+                        }
+                    );
+                });
+        });
+    });
+}
+
 start();
