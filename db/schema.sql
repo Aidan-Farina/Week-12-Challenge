@@ -1,13 +1,14 @@
 DROP DATABASE IF EXISTS buisness_db;
+-- this creates the database
 CREATE DATABASE buisness_db;
-
+-- this uses that created database
 USE buisness_db;
-
+-- this makes a table inside of the db for the departments
 CREATE TABLE department (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   department_name VARCHAR(30) NOT NULL
 );
-
+-- this will create the role table
 CREATE TABLE role (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(30) NOT NULL,
@@ -17,7 +18,7 @@ CREATE TABLE role (
     REFERENCES department(id) 
     ON DELETE SET NULL
 );
-
+-- creates the tables for employee
 CREATE TABLE employee (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   first_name VARCHAR(30) NOT NULL,

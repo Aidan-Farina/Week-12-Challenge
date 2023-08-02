@@ -1,6 +1,6 @@
 const inquirer = require("inquirer");
 const connection = require("./requests.js");
-
+// this is the function that shows you the options
 function start() {
     inquirer.prompt({
         type: "list",
@@ -19,6 +19,7 @@ function start() {
     })
         .then(handleAction);
 }
+// this take the answer above and will make said function work
 function handleAction(answer) {
     switch (answer.action) {
         case "View all departments":
@@ -51,7 +52,7 @@ function handleAction(answer) {
     }
 }
 
-
+// takes the answer is a view all is clicked then uses that as the answer
 function viewAll(tableName) {
     const query = `SELECT * FROM ${tableName}`;
     connection.query(query, (err, res) => {
@@ -60,8 +61,10 @@ function viewAll(tableName) {
         start();
     });
 }
+//functions for adding departments
 function addDepartment() {
     inquirer
+    //this is the prompt
         .prompt([
             {
                 name: "departmentName",
@@ -83,11 +86,13 @@ function addDepartment() {
             );
         });
 }
+//function for adding roles
 function addRole() {
     connection.query("SELECT * FROM department", function (err, departments) {
         if (err) throw err;
 
         inquirer
+        //this is the prompt
             .prompt([
                 {
                     name: "roleTitle",
@@ -126,86 +131,77 @@ function addRole() {
             });
     });
 }
-
+//function for adding employees
 function addEmployee() {
-    Promise.all([
-        new Promise((resolve, reject) => {
-            connection.query("SELECT * FROM role", function (err, roles) {
-                if (err) reject(err);
-                resolve(roles);
-            });
-        }),
-
-        new Promise((resolve, reject) => {
-            connection.query("SELECT * FROM employee", function (err, employees) {
-                if (err) reject(err);
-                resolve(employees);
-            });
-        }),
-    ])
-        .then(([roles, employees]) => {
-            inquirer
-                .prompt([
-                    {
-                        name: "firstName",
-                        type: "input",
-                        message: "What is the employee's first name?",
-                    },
-                    {
-                        name: "lastName",
-                        type: "input",
-                        message: "What is the employee's last name?",
-                    },
-                    {
-                        name: "roleId",
-                        type: "list",
-                        message: "What role does this employee have?",
-                        choices: roles.map((role) => ({
-                            name: role.title,
-                            value: role.id,
-                        })),
-                    },
-                    {
-                        name: "managerId",
-                        type: "list",
-                        message: "Who is this employee's manager?",
-                        choices: employees.map((employee) => ({
-                            name: `${employee.first_name} ${employee.last_name}`,
-                            value: employee.id,
-                        })),
-                    },
-                ])
-                .then((answer) => {
-                    connection.query(
-                        "INSERT INTO employee SET ?",
-                        {
-                            first_name: answer.firstName,
-                            last_name: answer.lastName,
-                            role_id: answer.roleId,
-                            manager_id: answer.managerId,
-                        },
-                        (err, res) => {
-                            if (err) throw err;
-                            console.log(
-                                `${answer.firstName} ${answer.lastName} Employee added successfully!`
-                            );
-                            start();
-                        }
-                    );
-                });
-        })
-        .catch((err) => {
+    connection.query("SELECT * FROM employee", function (err, employees) {
+      if (err) throw err;
+      connection.query("SELECT * FROM role", function (err, roles) {
+        if (err) throw err;
+        inquirer
+          .prompt([
+            {
+              name: "firstName",
+              type: "input",
+              message: "What is the employee's first name?",
+            },
+            {
+              name: "lastName",
+              type: "input",
+              message: "What is the employee's last name?",
+            },
+            {
+              name: "roleId",
+              type: "list",
+              message: "What role does this employee have?",
+              choices: roles.map((role) => ({
+                name: role.title,
+                value: role.id,
+              })),
+            },
+            {
+              name: "managerId",
+              type: "list",
+              message: "Who is this employee's manager?",
+              choices: employees.map((employee) => ({
+                name: `${employee.first_name} ${employee.last_name}`,
+                value: employee.id,
+              })),
+            },
+          ])
+          .then((answer) => {
+            connection.query(
+              "INSERT INTO employee SET ?",
+              {
+                first_name: answer.firstName,
+                last_name: answer.lastName,
+                role_id: answer.roleId,
+                manager_id: answer.managerId,
+              },
+              (err, res) => {
+                if (err) throw err;
+                console.log(
+                  `${answer.firstName} ${answer.lastName} Employee added successfully!`
+                );
+                start();
+              }
+            );
+          })
+          .catch((err) => {
             console.error("Error fetching data:", err);
             start();
-        });
-}
-
+          });
+      });
+    });
+  }
+//function for updating the roles
 function updateRole() {
+    // the 2 querys are pulling from sql to display
     connection.query("SELECT * FROM employee", function (err, employees) {
         if (err) throw err;
         connection.query("SELECT * FROM role", function (err, roles) {
             if (err) throw err;
             inquirer
+            // this is the prompt
                 .prompt([
                     {
                         name: "employeeId",
